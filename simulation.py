@@ -56,6 +56,39 @@ class AdventureGameSimulation:
         if commands:
             self.generate_events(commands, initial_location)
 
+    def _handle_solve(self, command: str, current_location: Location) -> Location:
+        """Handle a 'solve ...' command and return the (possibly updated) current location."""
+        parts = command.split()
+        if len(parts) >= 2:
+            solution = parts[1]
+            success, _ = self._game.solve_puzzle(solution)
+            if success:
+                # Update current_location to reflect unlocked command
+                return self._game.get_location()
+        return current_location
+
+    def _handle_take_or_use(self, command: str) -> None:
+        """Handle 'take ...' or 'use ...' commands."""
+        parts = command.split()
+        if len(parts) >= 2:
+            item_name = parts[1]
+            if command.startswith("take "):
+                self._game.take_item(item_name)
+            elif command.startswith("use "):
+                self._game.use_item(item_name)
+
+    def _handle_move(self, command: str, current_location: Location) -> Location:
+        """Handle movement commands and log an event. Returns the new current location."""
+        new_location_id = current_location.available_commands[command]
+
+        # IMPORTANT: use the game's movement method so moves/lose condition update correctly
+        self._game.move_to_location(new_location_id)
+
+        new_location = self._game.get_location()
+        new_event = Event(new_location.id_num, new_location.long_description)
+        self._events.add_event(new_event, command)
+        return new_location
+
     def generate_events(self, commands: list[str], current_location: Location) -> None:
         """
         Generate events in this simulation, based on current_location and commands, a valid list of commands.
@@ -67,39 +100,24 @@ class AdventureGameSimulation:
         for command in commands:
             # Handle puzzle solving - this unlocks new commands
             if command.startswith("solve "):
-                parts = command.split()
-                if len(parts) >= 2:
-                    solution = parts[1]
-                    success, _ = self._game.solve_puzzle(solution)
-                    if success:
-                        # Update current_location to reflect unlocked command
-                        current_location = self._game.get_location()
+                current_location = self._handle_solve(command, current_location)
                 continue
-            
+
             # Handle take and use commands - update game state but don't change location
-            if command.startswith("take "):
-                parts = command.split()
-                if len(parts) >= 2:
-                    item_name = parts[1]
-                    self._game.take_item(item_name)
+            if command.startswith("take ") or command.startswith("use "):
+                self._handle_take_or_use(command)
                 continue
-            
-            if command.startswith("use "):
-                parts = command.split()
-                if len(parts) >= 2:
-                    item_name = parts[1]
-                    self._game.use_item(item_name)
-                continue
-            
+
             # Handle movement commands
             if command in current_location.available_commands:
-                new_location_id = current_location.available_commands[command]
-                self._game.current_location_id = new_location_id
-                new_location = self._game.get_location()
-                new_event = Event(new_location.id_num, new_location.long_description)
-                self._events.add_event(new_event, command)
-                current_location = new_location
-            elif command in ["look", "inventory", "score", "log"]:
+                current_location = self._handle_move(command, current_location)
+
+                # Stop generating events if the game ended (win or lose)
+                if not self._game.ongoing:
+                    return
+                continue
+
+            if command in ["look", "inventory", "score", "log"]:
                 # Menu commands don't change location, skip for simulation
                 continue
 
@@ -165,59 +183,10 @@ if __name__ == "__main__":
     assert expected_log == sim.get_id_log()
 
     # Lose demo: Exceed maximum moves
-    lose_demo = [
-        "go east",  # Location 3
-        "go west",  # Location 1
-        "go east",  # Location 3
-        "go west",  # Location 1
-        "go east",  # Location 3
-        "go west",  # Location 1
-        "go east",  # Location 3
-        "go west",  # Location 1
-        "go east",  # Location 3
-        "go west",  # Location 1
-        "go east",  # Location 3
-        "go west",  # Location 1
-        "go east",  # Location 3
-        "go west",  # Location 1
-        "go east",  # Location 3
-        "go west",  # Location 1
-        "go east",  # Location 3
-        "go west",  # Location 1
-        "go east",  # Location 3
-        "go west",  # Location 1
-        "go east",  # Location 3
-        "go west",  # Location 1
-        "go east",  # Location 3
-        "go west",  # Location 1
-        "go east",  # Location 3
-        "go west",  # Location 1
-        "go east",  # Location 3
-        "go west",  # Location 1
-        "go east",  # Location 3
-        "go west",  # Location 1
-        "go east",  # Location 3
-        "go west",  # Location 1
-        "go east",  # Location 3
-        "go west",  # Location 1
-        "go east",  # Location 3
-        "go west",  # Location 1
-        "go east",  # Location 3
-        "go west",  # Location 1
-        "go east",  # Location 3
-        "go west",  # Location 1
-        "go east",  # Location 3
-        "go west",  # Location 1
-        "go east",  # Location 3
-        "go west",  # Location 1
-        "go east",  # Location 3
-        "go west",  # Location 1
-        "go east",  # Location 3
-        "go west",  # Location 1
-        "go east",  # Location 3
-        "go west"  # Location 1 - exceeds max moves
-    ]
-    expected_log = [1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1]
+    # Lose demo: Exceed maximum moves
+    lose_demo = ["go east", "go west"] * 50  # 100 moves, definitely hits the limit
+    expected_log = [1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1,
+                    3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1]
     sim = AdventureGameSimulation('game_data.json', 1, lose_demo)
     assert expected_log == sim.get_id_log()
 
