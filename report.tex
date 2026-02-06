@@ -6,7 +6,7 @@
 \usepackage[margin=0.75in]{geometry}
 
 \title{CSC111 Winter 2026 Project 1}
-\author{Project 1 Group}
+\author{Kevin, Selena}
 \date{\today}
 
 \begin{document}
@@ -48,7 +48,7 @@ Location IDs:
 Starting location is: 1
 
 \section*{Game solution}
-To win the game, you must collect all required items, solve the puzzle to unlock the computer lab, and use all items at the lab. Here is the complete walkthrough:
+To win the game, you must collect all required items, solve the puzzle to unlock the computer lab, and use all items at the lab. The player wins only when they are at the submission location (Location 10) and have used all items listed in \verb|submission_required_items|. Here is the complete walkthrough:
 
 \begin{verbatim}
 take usb_drive
@@ -74,7 +74,7 @@ use laptop_charger
 \section*{Lose condition(s)}
 The player loses the game if they exceed the maximum number of moves (50 moves). This represents running out of time before the 1pm deadline.
 
-List of commands to lose (by exceeding move limit - repeating go east and go west 50 times):
+List of commands to lose (by exceeding move limit - repeating go east / go west until the game ends - at 50 moves):
 
 \begin{verbatim}
 go east
@@ -122,6 +122,8 @@ Which parts of your code are involved in this functionality:
     \item Item name: coffee
     \item Item start location ID: 7
     \item Item target location ID: 10
+
+    Coffee is consumable and is removed from inventory after being      used.
     \end{itemize}
 \end{enumerate}
 
