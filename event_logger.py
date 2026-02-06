@@ -26,9 +26,6 @@ from dataclasses import dataclass
 from typing import Optional
 
 
-# TODO: Copy/paste your A1 event_logger code below, and modify it if needed to fit your game
-
-
 @dataclass
 class Event:
     """
@@ -117,7 +114,7 @@ class EventList:
         """
         if self.is_empty():
             return
-        
+
         if self.first == self.last:
             # Only one event in the list
             self.first = None
@@ -142,7 +139,6 @@ class EventList:
 
 
 if __name__ == "__main__":
-    pass
     # When you are ready to check your work with python_ta, uncomment the following lines.
     # (Delete the "#" and space before each line.)
     # IMPORTANT: keep this code indented inside the "if __name__ == '__main__'" block
