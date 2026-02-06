@@ -56,6 +56,8 @@ class AdventureGame:
 
     _locations: dict[int, Location]
     _items: list[Item]
+
+    # Public game state
     current_location_id: int
     ongoing: bool
     inventory: list[str]
@@ -63,6 +65,7 @@ class AdventureGame:
     moves: int
     max_moves: int
     submission_required_items: list[str]
+    used_items: set[str]
 
     def __init__(self, game_data_file: str, initial_location_id: int) -> None:
         """
@@ -82,7 +85,9 @@ class AdventureGame:
         # 2. Make sure the Item class is used to represent each item.
 
         # Load game data
-        self._locations, self._items, self.max_moves, self.submission_required_items = self._load_game_data(game_data_file)
+        self._locations, self._items, self.max_moves, self.submission_required_items = (
+            self._load_game_data(game_data_file)
+        )
 
         # Initialize game state
         self.current_location_id = initial_location_id
@@ -91,30 +96,35 @@ class AdventureGame:
         self.score = 0
         self.moves = 0
 
+        # Track which items have been used (prevents re-using an item for infinite points)
+        self.used_items = set()
+
     @staticmethod
     def _load_game_data(filename: str) -> tuple[dict[int, Location], list[Item], int, list[str]]:
-        """Load locations and items from a JSON file with the given filename and
-        return a tuple consisting of (1) a dictionary of locations mapping each game location's ID to a Location object,
-        (2) a list of all Item objects, (3) the maximum number of moves allowed, and (4) the list of required items for submission."""
+        """Load locations and items from a JSON file with the given filename and return:
+        (1) a dictionary mapping location IDs to Location objects,
+        (2) a list of all Item objects,
+        (3) the maximum number of moves allowed, and
+        (4) the list of required items for submission.
+        """
 
         with open(filename, 'r') as f:
             data = json.load(f)
 
         locations = {}
         for loc_data in data['locations']:
-            puzzle = loc_data.get('puzzle')
-            is_submission = loc_data.get('is_submission_location', False)
+            loc_id = loc_data['id']
             location_obj = Location(
-                loc_data['id'],
-                loc_data['brief_description'],
-                loc_data['long_description'],
+                loc_id,
+                f"LOCATION {loc_id}\n{loc_data['brief_description']}",
+                f"LOCATION {loc_id}\n{loc_data['long_description']}",
                 loc_data['available_commands'],
                 loc_data['items'],
                 visited=False,
-                puzzle=puzzle,
-                is_submission_location=is_submission
+                puzzle=loc_data.get('puzzle'),
+                is_submission_location=loc_data.get('is_submission_location', False)
             )
-            locations[loc_data['id']] = location_obj
+            locations[loc_id] = location_obj
 
         items = []
         for item_data in data['items']:
@@ -140,86 +150,86 @@ class AdventureGame:
             loc_id = self.current_location_id
         return self._locations[loc_id]
 
-    def get_item_by_name(self, item_name: str) -> Optional[Item]:
+    def get_item_by_name(self, name: str) -> Optional[Item]:
         """Return the Item object with the given name, or None if no such item exists."""
-        for item in self._items:
-            if item.name == item_name:
-                return item
+        for game_item in self._items:
+            if game_item.name == name:
+                return game_item
         return None
 
-    def take_item(self, item_name: str) -> str:
+    def take_item(self, item_name1: str) -> str:
         """Attempt to take an item from the current location.
         Returns a message describing the result.
         """
-        location = self.get_location()
-        
-        if item_name not in location.items:
-            return f"There is no '{item_name}' here."
-        
-        if item_name in self.inventory:
-            return f"You already have the {item_name}."
-        
-        self.inventory.append(item_name)
-        location.items.remove(item_name)
-        return f"You picked up the {item_name}."
+        item_location = self.get_location()
 
-    def use_item(self, item_name: str) -> str:
+        if item_name1 not in item_location.items:
+            return f"There is no '{item_name1}' here."
+
+        if item_name1 in self.inventory:
+            return f"You already have the {item_name1}."
+
+        self.inventory.append(item_name1)
+        item_location.items.remove(item_name1)
+        return f"You picked up the {item_name1}."
+
+    def use_item(self, item_name2: str) -> str:
         """Attempt to use an item at the current location.
         Returns a message describing the result.
         """
-        if item_name not in self.inventory:
-            return f"You don't have the {item_name}."
-        
-        item = self.get_item_by_name(item_name)
-        if item is None:
-            return f"Unknown item: {item_name}."
-        
-        location = self.get_location()
-        
-        if item.target_position != location.id_num:
-            return f"You can't use the {item_name} here. It needs to be used at location {item.target_position}."
-        
+        if item_name2 not in self.inventory:
+            return f"You don't have the {item_name2}."
+
+        if item_name2 in self.used_items:
+            return f"You already used the {item_name2}."
+
+        item1 = self.get_item_by_name(item_name2)
+        if item1 is None:
+            return f"Unknown item: {item_name2}."
+
+        location1 = self.get_location()
+
+        if item1.target_position != location1.id_num:
+            return f"You can't use the {item_name2} here. It needs to be used at location {item1.target_position}."
+
         # Item is used successfully
-        self.inventory.remove(item_name)
-        self.score += item.target_points
-        return f"You used the {item_name}! You gained {item.target_points} points."
+        self.score += item1.target_points
+        self.used_items.add(item_name2)
+        return f"You used the {item_name2}! You gained {item1.target_points} points."
 
     def solve_puzzle(self, solution: str) -> tuple[bool, str]:
         """Attempt to solve a puzzle at the current location.
         Returns a tuple (success, message).
         """
-        location = self.get_location()
-        
-        if location.puzzle is None:
+        location2 = self.get_location()
+
+        if location2.puzzle is None:
             return False, "There is no puzzle here."
-        
-        puzzle_type = location.puzzle.get('type')
-        correct_solution = location.puzzle.get('solution')
-        
+
+        correct_solution = location2.puzzle.get('solution')
+
         if solution == correct_solution:
-            # Puzzle solved - unlock the new location
-            unlocks_location = location.puzzle.get('unlocks_location')
+            unlocks_location = location2.puzzle.get('unlocks_location')
             if unlocks_location:
-                # Add command to access the unlocked location
-                location.available_commands['enter lab'] = unlocks_location
-                return True, f"Correct! The door unlocks. You can now 'enter lab' to access the computer lab."
-        else:
-            return False, "That's not the correct code. Try again!"
+                location2.available_commands['enter lab'] = unlocks_location
+                return True, "Correct! The door unlocks. You can now 'enter lab'."
+            return True, "Correct!"
+        return False, "That's not the correct code. Try again!"
 
     def check_win_condition(self) -> bool:
         """Check if the player has won the game.
         Player wins by being at the submission location with all required items.
         """
-        location = self.get_location()
-        
-        if not location.is_submission_location:
+        location3 = self.get_location()
+
+        if not location3.is_submission_location:
             return False
-        
+
         # Check if player has all required items
         for required_item in self.submission_required_items:
             if required_item not in self.inventory:
                 return False
-        
+
         return True
 
     def check_lose_condition(self) -> bool:
@@ -228,84 +238,101 @@ class AdventureGame:
         """
         return self.moves >= self.max_moves
 
-    def move_to_location(self, new_location_id: int) -> None:
+    def move_to_location(self, new_location_id1: int) -> None:
         """Move the player to a new location and update game state."""
-        self.current_location_id = new_location_id
+        self.current_location_id = new_location_id1
         self.moves += 1
-        
+
         # Check lose condition
         if self.check_lose_condition():
             self.ongoing = False
             return
-        
+
         # Check win condition
         if self.check_win_condition():
             self.ongoing = False
             return
 
 
-def handle_menu_command(game: AdventureGame, game_log: EventList, command: str) -> None:
+def _print_items_at_location(helper_game: AdventureGame, helper_location: Location) -> None:
+    """Print items at a location (if any)."""
+    if not helper_location.items:
+        return
+
+    print("\nItems here:")
+    for item_name0 in helper_location.items:
+        item0 = helper_game.get_item_by_name(item_name0)
+        if item0 is not None:
+            print(f"  - {item_name0}: {item0.description}")
+
+
+def _print_inventory(helper_game2: AdventureGame) -> None:
+    """Print the player's inventory."""
+    if not helper_game2.inventory:
+        print("\nYour inventory is empty.")
+        return
+
+    print("\nYour inventory:")
+    for item_name02 in helper_game2.inventory:
+        item02 = helper_game2.get_item_by_name(item_name02)
+        if item02 is not None:
+            print(f"  - {item_name02}: {item02.description}")
+
+
+def handle_menu_command(game_menu: AdventureGame, game_log_menu: EventList, command: str) -> None:
     """Handle menu commands that don't change location."""
     if command == "look":
-        location = game.get_location()
+        location0 = game_menu.get_location()
         print("\n" + "=" * 50)
-        print(location.long_description)
-        if location.items:
-            print("\nItems here:")
-            for item_name in location.items:
-                item = game.get_item_by_name(item_name)
-                if item:
-                    print(f"  - {item_name}: {item.description}")
+        print(location0.long_description)
+        _print_items_at_location(game_menu, location0)
         print("=" * 50)
-    
-    elif command == "inventory":
-        if not game.inventory:
-            print("\nYour inventory is empty.")
-        else:
-            print("\nYour inventory:")
-            for item_name in game.inventory:
-                item = game.get_item_by_name(item_name)
-                if item:
-                    print(f"  - {item_name}: {item.description}")
-    
-    elif command == "score":
-        print(f"\nYour current score: {game.score} points")
-        print(f"Moves remaining: {game.max_moves - game.moves}")
-    
-    elif command == "log":
+        return
+
+    if command == "inventory":
+        _print_inventory(game_menu)
+        return
+
+    if command == "score":
+        print(f"\nYour current score: {game_menu.score} points")
+        print(f"Moves remaining: {game_menu.max_moves - game_menu.moves}")
+        return
+
+    if command == "log":
         print("\nEvent Log:")
-        game_log.display_events()
-    
-    elif command == "quit":
+        game_log_menu.display_events()
+        return
+
+    if command == "quit":
         print("\nThanks for playing! Goodbye.")
-        game.ongoing = False
+        game_menu.ongoing = False
 
 
-def handle_take_command(game: AdventureGame, command: str) -> str:
+def handle_take_command(game1: AdventureGame, command: str) -> str:
     """Handle 'take [item]' command."""
     parts = command.split()
     if len(parts) < 2:
         return "Take what? Use 'take [item name]'"
-    item_name = parts[1]
-    return game.take_item(item_name)
+    item_name5 = parts[1]
+    return game1.take_item(item_name5)
 
 
-def handle_use_command(game: AdventureGame, command: str) -> str:
+def handle_use_command(game2: AdventureGame, command: str) -> str:
     """Handle 'use [item]' command."""
     parts = command.split()
     if len(parts) < 2:
         return "Use what? Use 'use [item name]'"
-    item_name = parts[1]
-    return game.use_item(item_name)
+    item_name6 = parts[1]
+    return game2.use_item(item_name6)
 
 
-def handle_solve_command(game: AdventureGame, command: str) -> tuple[bool, str]:
+def handle_solve_command(game3: AdventureGame, command: str) -> tuple[bool, str]:
     """Handle 'solve [code]' command for puzzles."""
     parts = command.split()
     if len(parts) < 2:
         return False, "Solve what? Use 'solve [code]'"
     solution = parts[1]
-    return game.solve_puzzle(solution)
+    return game3.solve_puzzle(solution)
 
 
 if __name__ == "__main__":
@@ -315,7 +342,7 @@ if __name__ == "__main__":
     # import python_ta
     # python_ta.check_all(config={
     #     'max-line-length': 120,
-    #     'disable': ['R1705', 'E9998', 'E9999', 'static_type_checker']
+    #     'disable': ['R1705', 'R0902', 'E9998', 'E9999', 'static_type_checker']
     # })
 
     print("=" * 60)
@@ -347,7 +374,7 @@ if __name__ == "__main__":
             location.visited = True
         else:
             print(location.brief_description)
-        
+
         # Show items at this location
         if location.items:
             print("\nYou see:")
@@ -355,11 +382,11 @@ if __name__ == "__main__":
                 item = game.get_item_by_name(item_name)
                 if item:
                     print(f"  - {item_name}: {item.description}")
-        
+
         # Show puzzle hint if there's a puzzle
         if location.puzzle and 'enter lab' not in location.available_commands:
             print(f"\n{location.puzzle.get('hint', 'There is a puzzle here.')}")
-        
+
         print("=" * 60)
 
         # Display possible actions
@@ -374,7 +401,7 @@ if __name__ == "__main__":
 
         # Get user input
         choice = input("\nEnter action: ").lower().strip()
-        
+
         # Handle special commands
         if choice.startswith("take "):
             result = handle_take_command(game, choice)
@@ -414,12 +441,12 @@ if __name__ == "__main__":
             if choice in location.available_commands:
                 new_location_id = location.available_commands[choice]
                 game.move_to_location(new_location_id)
-                
+
                 # Add event to log
                 new_location = game.get_location()
                 new_event = Event(new_location.id_num, new_location.long_description)
                 game_log.add_event(new_event, choice)
-                
+
                 # Check win/lose conditions
                 if game.check_win_condition():
                     print("\n" + "=" * 60)
