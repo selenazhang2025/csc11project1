@@ -88,7 +88,7 @@
       "items": [],
       "puzzle": {
         "type": "keypad",
-        "hint": "The code follows a pattern. Start with 2. Each next digit is: previous digit × 2, then add 1, then × 2, then add 1... So: 2, 5 (2×2+1), 11 (5×2+1), 23 (11×2+1). The code is 2511.",
+        "hint": "The code follows a pattern. Start with 2. Each next digit is: previous digit × 2, then add 1, then × 2, then add 1... So: 2, 5 (2×2+1), 11 (5×2+1), 23 (11×2+1).",
         "solution": "2511",
         "unlocks_location": 10
       }

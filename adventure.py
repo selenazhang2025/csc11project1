@@ -195,6 +195,11 @@ class AdventureGame:
         # Item is used successfully
         self.score += item1.target_points
         self.used_items.add(item_name2)
+
+        # Coffee is consumable: remove it after use
+        if item_name2 == "coffee":
+            self.inventory.remove(item_name2)
+
         return f"You used the {item_name2}! You gained {item1.target_points} points."
 
     def solve_puzzle(self, solution: str) -> tuple[bool, str]:
@@ -227,7 +232,7 @@ class AdventureGame:
 
         # Check if player has all required items
         for required_item in self.submission_required_items:
-            if required_item not in self.inventory:
+            if required_item not in self.used_items:
                 return False
 
         return True
