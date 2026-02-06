@@ -1,0 +1,250 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=0.75in]{geometry}
+
+\title{CSC111 Winter 2026 Project 1}
+\author{Project 1 Group}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section*{Running the game}
+Run the game by executing \texttt{adventure.py}. No additional libraries or installations are required. The game uses only Python standard library modules.
+
+\section*{Game Map}
+Game map showing all locations and their connections:
+
+\begin{verbatim}
+       6
+       |
+       3
+      /|\
+     / | \
+    1  7  4
+    |     |
+    2     8
+    |     |
+    5    10
+\end{verbatim}
+
+Location IDs:
+\begin{itemize}
+    \item 1: Bahen Center - First Floor
+    \item 2: Bahen Center - Elevator Lobby
+    \item 3: St. George Street
+    \item 4: Bahen Center - Basement
+    \item 5: Bahen Center - Third Floor
+    \item 6: Robarts Library - First Floor
+    \item 7: Coffee Shop
+    \item 8: Computer Lab - Locked (puzzle location)
+    \item 9: Robarts Library - Circulation Desk
+    \item 10: Computer Lab - Unlocked (submission location)
+\end{itemize}
+
+Starting location is: 1
+
+\section*{Game solution}
+To win the game, you must collect all required items, solve the puzzle to unlock the computer lab, and use all items at the lab. Here is the complete walkthrough:
+
+\begin{verbatim}
+take usb_drive
+go east
+go north
+take project_file
+go south
+go west
+go west
+go up
+take laptop_charger
+go down
+go east
+go south
+go west
+solve 2511
+enter lab
+use usb_drive
+use project_file
+use laptop_charger
+\end{verbatim}
+
+\section*{Lose condition(s)}
+The player loses the game if they exceed the maximum number of moves (50 moves). This represents running out of time before the 1pm deadline.
+
+List of commands to lose (by exceeding move limit - repeating go east and go west 50 times):
+
+\begin{verbatim}
+go east
+go west
+(Repeat this pattern 50 times to exceed the move limit)
+\end{verbatim}
+
+Which parts of your code are involved in this functionality:
+\begin{itemize}
+    \item File: \texttt{adventure.py}
+    \item Class: \texttt{AdventureGame}
+    \item Method: \texttt{move\_to\_location()} - increments the \texttt{moves} counter each time the player moves
+    \item Method: \texttt{check\_lose\_condition()} - checks if \texttt{moves >= max\_moves}
+    \item Attribute: \texttt{max\_moves} - set to 50, loaded from \texttt{game\_data.json}
+    \item Attribute: \texttt{moves} - tracks the number of moves made by the player
+\end{itemize}
+
+\section*{Inventory}
+
+\begin{enumerate}
+\item All location IDs that involve items in the game: 1, 5, 6, 7
+
+\item Item data:
+\begin{enumerate}
+    \item For Item 1:
+    \begin{itemize}
+    \item Item name: usb\_drive
+    \item Item start location ID: 1
+    \item Item target location ID: 10
+    \end{itemize}
+    \item For Item 2:
+    \begin{itemize}
+    \item Item name: laptop\_charger
+    \item Item start location ID: 5
+    \item Item target location ID: 10
+    \end{itemize}
+    \item For Item 3:
+    \begin{itemize}
+    \item Item name: project\_file
+    \item Item start location ID: 6
+    \item Item target location ID: 10
+    \end{itemize}
+    \item For Item 4:
+    \begin{itemize}
+    \item Item name: coffee
+    \item Item start location ID: 7
+    \item Item target location ID: 10
+    \end{itemize}
+\end{enumerate}
+
+    \item Exact command(s) that should be used to pick up an item and check inventory:
+    \begin{verbatim}
+take usb_drive
+go east
+go north
+take project_file
+inventory
+go south
+go west
+go west
+go up
+take laptop_charger
+inventory
+    \end{verbatim}
+    
+    \item Which parts of your code (file, class, function/method) are involved in handling the \texttt{inventory} command:
+    \begin{itemize}
+        \item File: \texttt{adventure.py}
+        \item Function: \texttt{handle\_menu\_command()} - handles the "inventory" menu command
+        \item Class: \texttt{AdventureGame}
+        \item Attribute: \texttt{inventory} - list of item names the player is carrying
+        \item Method: \texttt{get\_item\_by\_name()} - retrieves Item object by name to display description
+    \end{itemize}
+\end{enumerate}
+
+\section*{Score}
+\begin{enumerate}
+
+    \item Players earn score by using items at their target locations. Each item has a point value that is added to the score when used correctly. The first location where players can increase their score is location 10 (Computer Lab - Unlocked), after solving the puzzle and entering the lab.
+
+    Exact list of commands leading up to the first score increase:
+    \begin{verbatim}
+take usb_drive
+go east
+go south
+take coffee
+go north
+go west
+go south
+go west
+solve 2511
+enter lab
+score
+use coffee
+score
+    \end{verbatim}
+
+    \item Copy the list you assigned to \texttt{scores\_demo} in the \texttt{simulation.py} file into this section of the report:
+    \begin{verbatim}
+take usb_drive
+go east
+go south
+take coffee
+go north
+go west
+go south
+go west
+solve 2511
+enter lab
+score
+use coffee
+score
+    \end{verbatim}
+
+    \item Which parts of your code (file, class, function/method) are involved in handling the \texttt{score} functionality:
+    \begin{itemize}
+        \item File: \texttt{adventure.py}
+        \item Function: \texttt{handle\_menu\_command()} - handles the "score" menu command to display current score
+        \item Class: \texttt{AdventureGame}
+        \item Attribute: \texttt{score} - tracks the player's current score
+        \item Method: \texttt{use\_item()} - adds \texttt{target\_points} to score when an item is used at its target location
+        \item Class: \texttt{Item} (in \texttt{game\_entities.py})
+        \item Attribute: \texttt{target\_points} - the number of points awarded for using the item
+    \end{itemize}
+\end{enumerate}
+
+\section*{Enhancements}
+\begin{enumerate}
+    \item Logic Puzzle - Keypad Code
+    \begin{itemize}
+        \item Brief description: A complex logic puzzle that blocks access to the computer lab. The player must solve a mathematical sequence puzzle to unlock a 4-digit keypad code. The puzzle requires understanding a pattern: starting with 2, each subsequent digit follows the pattern: previous digit × 2, then add 1, alternating. The sequence is: 2 → 5 (2×2+1) → 11 (5×2+1) → 23 (11×2+1), but the code uses the first 4 digits: 2, 5, 1, 1 (2511). The player must use the "solve [code]" command to attempt the solution. If correct, the "enter lab" command becomes available.
+        
+        \item Complexity level: High
+        
+        \item Reasons: This is a high-complexity enhancement because:
+        \begin{itemize}
+            \item It required adding puzzle data structure to the Location class (puzzle dictionary with type, hint, solution, and unlocks\_location)
+            \item Implementation of puzzle-solving logic in \texttt{AdventureGame.solve\_puzzle()} method that validates solutions and dynamically adds new commands to location.available\_commands
+            \item Integration with the game loop to handle "solve" commands and display puzzle hints
+            \item The puzzle requires mathematical reasoning and pattern recognition, making it a substantial gameplay element
+            \item Modified game\_data.json to include puzzle information for location 8
+            \item Updated simulation.py to properly handle puzzle-solving commands in the simulation
+            \item Added puzzle hint display in the main game loop
+            \item The enhancement affects multiple files and requires careful state management to ensure the unlocked command appears correctly
+        \end{itemize}
+        
+        \item Name the parts of the code which are involved in this enhancement:
+        \begin{itemize}
+            \item File: \texttt{game\_entities.py}
+            \item Class: \texttt{Location}
+            \item Attributes: \texttt{puzzle} (Optional[dict]) - stores puzzle information
+            \item File: \texttt{game\_data.json}
+            \item Location 8 data: includes "puzzle" field with type, hint, solution, and unlocks\_location
+            \item File: \texttt{adventure.py}
+            \item Class: \texttt{AdventureGame}
+            \item Method: \texttt{solve\_puzzle()} - validates solution and unlocks new location command
+            \item Function: \texttt{handle\_solve\_command()} - processes solve commands from user input
+            \item Main game loop: displays puzzle hints and handles solve commands
+        \end{itemize}
+        
+        \item Copy the list you assigned to \texttt{enhancements\_demo} in the \texttt{simulation.py} file into this section of the report:
+        \begin{verbatim}
+go south
+go west
+solve 1234
+solve 2511
+enter lab
+        \end{verbatim}
+    \end{itemize}
+\end{enumerate}
+
+
+\end{document}

@@ -1,0 +1,151 @@
+{
+  "locations": [
+    {
+      "id": 1,
+      "name": "Bahen Center - First Floor",
+      "brief_description": "You are on the first floor of the Bahen Center. The elevators are to the west, and the main exit to St. George Street is to the east.",
+      "long_description": "You are on the first floor of the Bahen Center. It's usually crowded at this time of day, but today it's eerily quiet. Only a few students are studying at tables near the doors. You better not disturb them. One student is rushing down the corridor, wearing a heavy-looking backpack. There are elevators to the west, and the main exit to St. George Street is to the east. You notice something glinting on the floor near the elevators.",
+      "available_commands": {
+        "go west": 2,
+        "go east": 3,
+        "go south": 4
+      },
+      "items": ["usb_drive"]
+    },
+    {
+      "id": 2,
+      "name": "Bahen Center - Elevator Lobby",
+      "brief_description": "You are in the elevator lobby. The elevators are here, and you can go back east to the first floor main area.",
+      "long_description": "You are in the elevator lobby of Bahen Center. The elevators stand silently, their buttons glowing. A maintenance notice is taped to one of the elevators: 'Out of order - use stairs'. You can see the main floor area to the east. There's a vending machine in the corner that seems to be working.",
+      "available_commands": {
+        "go east": 1,
+        "go up": 5
+      },
+      "items": []
+    },
+    {
+      "id": 3,
+      "name": "St. George Street",
+      "brief_description": "You are on St. George Street outside Bahen Center. You can see Robarts Library to the north and a coffee shop to the south.",
+      "long_description": "You step outside Bahen Center onto St. George Street. The morning air is crisp. Students are hurrying to their classes. You can see the imposing Robarts Library to the north, and you remember there's a coffee shop to the south where you and your friend often work. The deadline is approaching - you need to hurry!",
+      "available_commands": {
+        "go west": 1,
+        "go north": 6,
+        "go south": 7
+      },
+      "items": []
+    },
+    {
+      "id": 4,
+      "name": "Bahen Center - Basement",
+      "brief_description": "You are in the basement of Bahen Center. It's dimly lit and quiet. There's a computer lab to the west.",
+      "long_description": "You descend to the basement of Bahen Center. The fluorescent lights flicker overhead. It's much quieter down here. You can see a computer lab door to the west with a keypad lock. The door has a sign: 'CS Lab - Access Restricted'. You notice a whiteboard nearby with some numbers written on it.",
+      "available_commands": {
+        "go north": 1,
+        "go west": 8
+      },
+      "items": []
+    },
+    {
+      "id": 5,
+      "name": "Bahen Center - Third Floor",
+      "brief_description": "You are on the third floor of Bahen Center. There are several offices and study rooms here.",
+      "long_description": "You climb the stairs to the third floor. The hallway is lined with faculty offices and study rooms. Most doors are closed. You can hear faint typing from one of the rooms. There's a notice board with various announcements. You can go back down to the elevator lobby.",
+      "available_commands": {
+        "go down": 2
+      },
+      "items": ["laptop_charger"]
+    },
+    {
+      "id": 6,
+      "name": "Robarts Library - First Floor",
+      "brief_description": "You are in Robarts Library. It's a massive space with rows of bookshelves. The circulation desk is to the east.",
+      "long_description": "You enter Robarts Library. The vast space stretches before you, with towering bookshelves reaching toward the ceiling. Students are scattered at study tables, some with laptops, some with books. The circulation desk is to the east. The library has that distinctive smell of old books and quiet concentration. You remember you left something important here yesterday.",
+      "available_commands": {
+        "go south": 3,
+        "go east": 9
+      },
+      "items": ["project_file"]
+    },
+    {
+      "id": 7,
+      "name": "Coffee Shop",
+      "brief_description": "You are in the campus coffee shop. It's warm and smells of coffee. The barista is behind the counter.",
+      "long_description": "You enter the familiar coffee shop. The warm aroma of coffee fills the air. A few students are working on laptops at tables. The barista waves at you - you're a regular here. You remember you need something to help you stay focused. The shop has an exit back to St. George Street to the north.",
+      "available_commands": {
+        "go north": 3
+      },
+      "items": ["coffee"]
+    },
+    {
+      "id": 8,
+      "name": "Computer Lab - Locked",
+      "brief_description": "You are at the computer lab door. It's locked with a keypad. The keypad shows: [    ] [    ] [    ] [    ]",
+      "long_description": "You approach the computer lab door. It's secured with an electronic keypad lock. The display shows four empty slots: [    ] [    ] [    ] [    ]. There's a note taped to the door: 'To unlock: Enter the 4-digit code. Hint: Check the whiteboard in the basement. The code follows a pattern: each digit is related to the previous one by a mathematical operation. Start with 2.' You need to figure out the pattern!",
+      "available_commands": {
+        "go east": 4
+      },
+      "items": [],
+      "puzzle": {
+        "type": "keypad",
+        "hint": "The code follows a pattern. Start with 2. Each next digit is: previous digit × 2, then add 1, then × 2, then add 1... So: 2, 5 (2×2+1), 11 (5×2+1), 23 (11×2+1). The code is 2511.",
+        "solution": "2511",
+        "unlocks_location": 10
+      }
+    },
+    {
+      "id": 9,
+      "name": "Robarts Library - Circulation Desk",
+      "brief_description": "You are at the circulation desk. A librarian is helping students.",
+      "long_description": "You approach the circulation desk. A friendly librarian is helping students check out books. Behind the desk, you can see the lost and found box. You remember leaving your project file here yesterday when you were studying. The main library area is to the west.",
+      "available_commands": {
+        "go west": 6
+      },
+      "items": []
+    },
+    {
+      "id": 10,
+      "name": "Computer Lab - Unlocked",
+      "brief_description": "You are inside the computer lab. Rows of computers are available. This is where you can fix your project and submit it!",
+      "long_description": "The door clicks open and you enter the computer lab. Rows of computers line the room, most of them available. The lab is quiet - perfect for working. You see an empty workstation near the window. This is where you need to work on fixing your project bug and submitting it before the 1pm deadline. You can exit back to the basement to the east.",
+      "available_commands": {
+        "go east": 4
+      },
+      "items": [],
+      "is_submission_location": true
+    }
+  ],
+  "items": [
+    {
+      "name": "usb_drive",
+      "description": "A USB drive. You'll need this to transfer your fixed project file to the lab computer.",
+      "start_position": 1,
+      "target_position": 10,
+      "target_points": 10
+    },
+    {
+      "name": "laptop_charger",
+      "description": "A laptop charger. Your laptop battery is low and you'll need this to work on your project.",
+      "start_position": 5,
+      "target_position": 10,
+      "target_points": 10
+    },
+    {
+      "name": "project_file",
+      "description": "Your project file from yesterday. It has the bug that needs fixing.",
+      "start_position": 6,
+      "target_position": 10,
+      "target_points": 15
+    },
+    {
+      "name": "coffee",
+      "description": "A cup of coffee. This will help you stay focused while debugging.",
+      "start_position": 7,
+      "target_position": 10,
+      "target_points": 5
+    }
+  ],
+  "initial_location": 1,
+  "max_moves": 50,
+  "submission_required_items": ["usb_drive", "project_file", "laptop_charger"]
+}
