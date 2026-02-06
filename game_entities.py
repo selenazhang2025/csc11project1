@@ -81,7 +81,7 @@ class Item:
 # - Player class
 # etc.
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
     # When you are ready to check your work with python_ta, uncomment the following lines.
     # (Delete the "#" and space before each line.)
     # IMPORTANT: keep this code indented inside the "if __name__ == '__main__'" block
